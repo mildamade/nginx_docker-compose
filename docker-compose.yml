@@ -1,0 +1,40 @@
+version: '2'
+
+networks:
+  proxy-tier:
+
+
+services:
+  nginx-proxy:
+    container_name: nginx-proxy
+    hostname: proxy.dryvom.cz
+    image: jwilder/nginx-proxy
+    restart: always
+    privileged: true
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+      - ./vhost.d:/etc/nginx/vhost.d
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - /usr/share/nginx/html
+      - /etc/nginx/conf.d
+    networks:
+      - proxy-tier
+
+  nginx-proxy-letsencrypt:
+    container_name: nginx-proxy-letsencrypt
+    hostname: letsenrypt.czela.net
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    depends_on:
+      - nginx-proxy
+    restart: always
+    privileged: true
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - ./certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+ 
+
